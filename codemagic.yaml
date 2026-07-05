@@ -21,8 +21,8 @@ workflows:
       - build/ios/iphonesimulator/Runner.app
       - build/ios/iphonesimulator/**/*.app
 
-  ios-release:
-    name: iOS Release Build
+  ios-release-unsigned:
+    name: iOS Release (Unsigned IPA for AltStore)
     max_build_duration: 60
     environment:
       flutter: stable
@@ -37,10 +37,27 @@ workflows:
           rm -rf Pods Podfile.lock .symlinks
           pod deintegrate || true
           pod install --repo-update
-      - name: Build iOS for release
+      - name: Build iOS release (unsigned)
         script: flutter build ios --release --no-codesign
+      - name: Package as unsigned IPA
+        script: |
+          set -e
+          # Find the .app anywhere under build/ios
+          APP_PATH=ind build/ios -name "Runner.app" -type d | grep -i release | head -1
+          if [ -z "" ]; then
+            APP_PATH=ind build/ios -name "Runner.app" -type d | head -1
+          fi
+          echo "Found APP at: "
+          cd dirname 
+          rm -rf Payload
+          mkdir Payload
+          cp -R Runner.app Payload/Runner.app
+          zip -r Runner_unsigned.ipa Payload
+          cp Runner_unsigned.ipa /Runner_unsigned.ipa
+          ls -la /Runner_unsigned.ipa
     artifacts:
-      - build/ios/iphone/Build/Products/Release-iphoneos/*.ipa
+      - /Runner_unsigned.ipa
+      - build/**/Runner_unsigned.ipa
 
   android-debug:
     name: Android Debug APK
