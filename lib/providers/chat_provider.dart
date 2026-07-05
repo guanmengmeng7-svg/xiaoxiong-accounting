@@ -104,7 +104,7 @@ class ChatProvider extends ChangeNotifier {
       'content': m.content,
     }).toList();
     return await _ai.chat(
-      '请用轻松的语气解读今日运势：$fortuneType - $fortuneName。结合用户今日账单：收入${(stats['income'] ?? 0).toStringAsFixed(0)}元，支出${(stats['expense'] ?? 0).toStringAsFixed(0)}元。给出简短有趣的运势分析和温馨提示（50字以内）。',
+      '请用轻松的语气解读今日运势：$fortuneType - $fortuneName。结合用户今日账单：收入${(stats['income'] ?? 0).toStringAsFixed(2)}元，支出${(stats['expense'] ?? 0).toStringAsFixed(2)}元。给出简短有趣的运势分析和温馨提示（50字以内）。',
       history, stats, 0, false,
     );
   }
@@ -152,7 +152,7 @@ class ChatProvider extends ChangeNotifier {
   /// 前端关键词解析（第一道防线）
   BillRecord? _parseBillFromUserText(String text) {
     // 支持阿拉伯数字和汉字数字
-    final amountRegex = RegExp(r'(\d+\.?\d*)\s*(亿|万|两|元|块|块人民币)?');
+    final amountRegex = RegExp(r'([\d,]+\.?\d*)\s*(亿|万|两|元|块|块人民币)?');
     final expenseKeywords = ['亏', '亏损', '赔', '赔了', '花', '花了', '支出', '消费', '买', '买了', '支付', '丢了', '损失'];
     final incomeKeywords = ['赚', '赚了', '收入', '工资', '到账', '进账', '收到', '奖金', '分红', '利息'];
 
@@ -170,7 +170,8 @@ class ChatProvider extends ChangeNotifier {
     // 先尝试匹配阿拉伯数字
     final amountMatch = amountRegex.firstMatch(text);
     if (amountMatch != null) {
-      amount = double.tryParse(amountMatch.group(1) ?? '0') ?? 0;
+      final rawNum = amountMatch.group(1) ?? '0';
+      amount = (double.tryParse(rawNum.replaceAll(',', '')) ?? 0);
       final unit = amountMatch.group(2) ?? '元';
       if (unit == '亿') amount = amount * 100000000;
       else if (unit == '万') amount = amount * 10000;
@@ -247,12 +248,15 @@ class ChatProvider extends ChangeNotifier {
 
     final aiResponse = await _ai.chat(text, history, stats, dailyBudget, budgetEnabled);
 
+    // 防重复记账：只有用户消息中包含数字金额时才信任 AI 生成的账单
+    final hasNumber = RegExp(r'\d').hasMatch(text);
+    BillRecord? aiBill = hasNumber ? _ai.parseBill(aiResponse) : null;
     final aiMsg = ChatMessage(
       id: _uuid.v4(),
       content: aiResponse,
       isUser: false,
       time: DateTime.now(),
-      record: _ai.parseBill(aiResponse),
+      record: aiBill,
     );
     _messages.add(aiMsg);
     _isLoading = false;
@@ -260,8 +264,8 @@ class ChatProvider extends ChangeNotifier {
 
     await _db.saveMessage(aiMsg, _currentRoleId);
 
-    if (aiMsg.record != null && !frontendRecorded) {
-      await _db.addBill(aiMsg.record!);
+    if (aiBill != null && !frontendRecorded) {
+      await _db.addBill(aiBill);
       _onBillAdded?.call();
     }
   }

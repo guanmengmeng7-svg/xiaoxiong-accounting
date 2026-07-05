@@ -1,4 +1,4 @@
-﻿import "dart:io";
+import "dart:io";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:intl/intl.dart";
@@ -423,7 +423,7 @@ class _StatsDetailPageState extends State<StatsDetailPage> {
         if (ctx.mounted) {
           ScaffoldMessenger.of(ctx).showSnackBar(
             SnackBar(
-              content: Text("${isIncome ? "收入" : "支出"} ${amount.toStringAsFixed(0)} 已删除"),
+              content: Text("${isIncome ? "收入" : "支出"} ${amount.toStringAsFixed(2)} 已删除"),
               backgroundColor: AppTheme.expenseColor,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -476,7 +476,7 @@ class _StatsDetailPageState extends State<StatsDetailPage> {
   String _formatAmount(double amount) {
     if (amount >= 100000000) return "${(amount / 100000000).toStringAsFixed(1)}亿";
     if (amount >= 10000) return "${(amount / 10000).toStringAsFixed(1)}万";
-    return amount.toStringAsFixed(0);
+    return amount.toStringAsFixed(2);
   }
 
   void _showBillDetail(Map<String, dynamic> bill) {

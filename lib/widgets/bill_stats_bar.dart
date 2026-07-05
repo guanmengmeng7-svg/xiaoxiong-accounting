@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/bill_provider.dart';
@@ -24,7 +24,7 @@ class BillStatsBar extends StatelessWidget {
           _buildStatCard(
             context,
             '今日收入',
-            (todayStats['todayIncome'] ?? 0).toStringAsFixed(0),
+            (todayStats['todayIncome'] ?? 0).toStringAsFixed(2),
             AppTheme.incomeColor,
             '↑',
             'income',
@@ -34,7 +34,7 @@ class BillStatsBar extends StatelessWidget {
           _buildStatCard(
             context,
             '今日支出',
-            (todayStats['todayExpense'] ?? 0).toStringAsFixed(0),
+            (todayStats['todayExpense'] ?? 0).toStringAsFixed(2),
             AppTheme.expenseColor,
             '↓',
             'expense',
@@ -44,7 +44,7 @@ class BillStatsBar extends StatelessWidget {
           _buildStatCard(
             context,
             '总结余',
-            (todayStats['todayBalance'] ?? 0).toStringAsFixed(0),
+            (todayStats['todayBalance'] ?? 0).toStringAsFixed(2),
             AppTheme.primaryBrown,
             '=',
             'balance',

@@ -106,7 +106,7 @@ class _ChatPageState extends State<ChatPage> {
                 itemCount: chat.messages.length + (chat.isLoading ? 1 : 0),
                 itemBuilder: (ctx, index) {
                   final actualIndex = chat.isLoading ? index - 1 : index;
-                  if (chat.isLoading && index == 0) return _loading(currentRole);
+                  if (chat.isLoading && index == 0) return _loading(currentRole, settings);
                   return ChatBubble(message: chat.messages[chat.messages.length - 1 - actualIndex], role: currentRole);
                 },
               );
@@ -131,7 +131,7 @@ class _ChatPageState extends State<ChatPage> {
       decoration: AppTheme.glassDecoration(radius: AppTheme.radiusLarge),
       child: Column(children: [
         Row(children: [
-          GestureDetector(onTap: () => _avatarSheet(true), child: Container(width: 32, height: 32, decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.creamYellow, border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1)), child: ClipOval(child: (settings.aiAvatarUrl != null && settings.aiAvatarUrl!.isNotEmpty) ? Image.file(File(settings.aiAvatarUrl!), width: 32, height: 32, fit: BoxFit.cover, errorBuilder: (ctx, err, st) => Center(child: Text(role.emoji, style: const TextStyle(fontSize: 16)))) : Center(child: Text(role.emoji, style: const TextStyle(fontSize: 16)))))),
+          GestureDetector(onTap: () => _avatarSheet(true), child: Container(width: 32, height: 32, decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.creamYellow, border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1)), child: ClipOval(child: (settings.getRoleAvatar(role.id) ?? '').isNotEmpty ? Image.file(File(settings.getRoleAvatar(role.id)!), width: 32, height: 32, fit: BoxFit.cover, errorBuilder: (ctx, err, st) => Center(child: Text(role.emoji, style: const TextStyle(fontSize: 16)))) : Center(child: Text(role.emoji, style: const TextStyle(fontSize: 16)))))),
           const SizedBox(width: 8),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(role.name, style: AppTheme.headingMedium.copyWith(fontSize: 14)), Text("call me ${role.callUser}", style: AppTheme.caption.copyWith(fontSize: 10))])),
           _iconBtn(settings.userAvatarUrl, () => _avatarSheet(false)),
@@ -142,11 +142,11 @@ class _ChatPageState extends State<ChatPage> {
         ]),
         const SizedBox(height: 6),
         Row(children: [
-          _statItem("收入", (todayStats["todayIncome"] ?? 0).toStringAsFixed(0), AppTheme.incomeColor, "income"),
+          _statItem("收入", (todayStats["todayIncome"] ?? 0).toStringAsFixed(2), AppTheme.incomeColor, "income"),
           const SizedBox(width: 8),
-          _statItem("支出", (todayStats["todayExpense"] ?? 0).toStringAsFixed(0), AppTheme.expenseColor, "expense"),
+          _statItem("支出", (todayStats["todayExpense"] ?? 0).toStringAsFixed(2), AppTheme.expenseColor, "expense"),
           const SizedBox(width: 8),
-          _statItem("结余", (todayStats["todayBalance"] ?? 0).toStringAsFixed(0), AppTheme.primaryBrown, "balance"),
+          _statItem("结余", (todayStats["todayBalance"] ?? 0).toStringAsFixed(2), AppTheme.primaryBrown, "balance"),
         ]),
       ]),
     );
@@ -201,8 +201,12 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _egItem(String text) => Padding(padding: const EdgeInsets.only(left: 16, top: 4), child: Text(text, style: AppTheme.bodyMedium));
 
-  Widget _loading(AIRole role) {
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16), child: Row(children: [Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.creamYellow, border: Border.all(color: Colors.white.withValues(alpha: 0.7), width: 1)), child: Center(child: Text(role.emoji, style: const TextStyle(fontSize: 14)))), const SizedBox(width: 12), Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), decoration: AppTheme.glassDecoration(radius: 20), child: Row(mainAxisSize: MainAxisSize.min, children: [Text("thinking...", style: AppTheme.bodyMedium), const SizedBox(width: 10), const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(AppTheme.primaryBrown)))]))]));
+  Widget _loading(AIRole role, SettingsProvider settings) {
+    final aiUrl = settings.getRoleAvatar(role.id);
+    final aiAvatar = aiUrl != null && aiUrl.isNotEmpty
+        ? ClipOval(child: Image.file(File(aiUrl), width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Text(role.emoji, style: const TextStyle(fontSize: 14))))
+        : Text(role.emoji, style: const TextStyle(fontSize: 14));
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16), child: Row(children: [Container(width: 28, height: 28, decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.creamYellow, border: Border.all(color: Colors.white.withValues(alpha: 0.7), width: 1)), child: Center(child: aiAvatar)), const SizedBox(width: 12), Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), decoration: AppTheme.glassDecoration(radius: 20), child: Row(mainAxisSize: MainAxisSize.min, children: [Text("thinking...", style: AppTheme.bodyMedium), const SizedBox(width: 10), const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(AppTheme.primaryBrown)))]))]));
   }
 
   Widget _inputBar(AIRole role) {
