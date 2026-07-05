@@ -8,6 +8,7 @@ import '../services/ai_service.dart';
 import '../app_theme.dart';
 import '../widgets/rilakkuma_decoration.dart';
 import '../utils/rilakkuma_stickers.dart';
+import '../utils/platform_image.dart';
 
 /// 设置页面 - 轻松熊奶冻果冻风格（稳定版）
 class SettingsPage extends StatefulWidget {
@@ -347,14 +348,8 @@ class _SettingsPageState extends State<SettingsPage> {
       return const Icon(Icons.person, color: AppTheme.textPrimary, size: 28);
     }
     try {
-      return Image.file(
-        File(url),
-        width: 60,
-        height: 60,
-        fit: BoxFit.cover,
-        errorBuilder: (ctx, err, st) =>
-            const Icon(Icons.person, color: AppTheme.textPrimary, size: 28),
-      );
+      return buildAvatarImage(url, width: 60, height: 60,
+          fallback: const Icon(Icons.person, color: AppTheme.textPrimary, size: 28));
     } catch (e) {
       return const Icon(Icons.person, color: AppTheme.textPrimary, size: 28);
     }
@@ -460,7 +455,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 child: ClipOval(
                   child: roleAvatar != null && roleAvatar.isNotEmpty
-                      ? Image.file(File(roleAvatar), width: 48, height: 48, fit: BoxFit.cover)
+                      ? buildAvatarImage(roleAvatar, width: 48, height: 48,
+                          fallback: Center(child: Text(role.emoji, style: const TextStyle(fontSize: 24))))
                       : Center(child: Text(role.emoji, style: const TextStyle(fontSize: 24))),
                 ),
               ),
@@ -572,7 +568,7 @@ class _SettingsPageState extends State<SettingsPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         image: DecorationImage(
-          image: FileImage(File(path)),
+          image: buildImageProvider(path),
           fit: BoxFit.cover,
         ),
       ),

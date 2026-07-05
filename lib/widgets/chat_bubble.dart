@@ -4,6 +4,7 @@ import '../models/chat_message.dart';
 import '../models/ai_role.dart';
 import '../providers/settings_provider.dart';
 import '../app_theme.dart';
+import '../utils/platform_image.dart';
 
 /// 聊天气泡组件 - 轻松熊奶冻果冻风格
 class ChatBubble extends StatelessWidget {
@@ -22,7 +23,7 @@ class ChatBubble extends StatelessWidget {
     final settings = context.watch<SettingsProvider>();
     final avatarUrl = settings.getRoleAvatar(role.id);
     final Widget avatarWidget = (avatarUrl != null && avatarUrl.isNotEmpty)
-        ? ClipOval(child: Image.file(File(avatarUrl), width: 28, height: 28, fit: BoxFit.cover, errorBuilder: (ctx, err, st) => Center(child: Text(role.emoji, style: const TextStyle(fontSize: 16)))))
+        ? ClipOval(child: buildAvatarImage(avatarUrl, width: 28, height: 28, fallback: Center(child: Text(role.emoji, style: const TextStyle(fontSize: 16)))))
         : Center(child: Text(role.emoji, style: const TextStyle(fontSize: 16)));
 
     return Padding(
@@ -118,9 +119,9 @@ class ChatBubble extends StatelessWidget {
               child: (settings.userAvatarUrl != null &&
                       settings.userAvatarUrl!.isNotEmpty)
                   ? ClipOval(
-                      child: Image.file(File(settings.userAvatarUrl!),
-                          width: 28, height: 28, fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, st) => const Icon(Icons.person, color: AppTheme.textPrimary, size: 16)))
+                      child: buildAvatarImage(settings.userAvatarUrl!,
+                          width: 28, height: 28,
+                          fallback: const Icon(Icons.person, color: AppTheme.textPrimary, size: 16)))
                   : const Icon(Icons.person, color: AppTheme.textPrimary, size: 16),
             ),
           ),
