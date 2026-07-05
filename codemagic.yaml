@@ -42,22 +42,14 @@ workflows:
       - name: Package as unsigned IPA
         script: |
           set -e
-          # Find the .app anywhere under build/ios
-          APP_PATH=ind build/ios -name "Runner.app" -type d | grep -i release | head -1
-          if [ -z "" ]; then
-            APP_PATH=ind build/ios -name "Runner.app" -type d | head -1
-          fi
-          echo "Found APP at: "
-          cd dirname 
+          cd build/ios/iphoneos
           rm -rf Payload
           mkdir Payload
           cp -R Runner.app Payload/Runner.app
           zip -r Runner_unsigned.ipa Payload
-          cp Runner_unsigned.ipa /Runner_unsigned.ipa
-          ls -la /Runner_unsigned.ipa
+        working_directory: build/ios/iphoneos
     artifacts:
-      - /Runner_unsigned.ipa
-      - build/**/Runner_unsigned.ipa
+      - build/ios/iphoneos/Runner_unsigned.ipa
 
   android-debug:
     name: Android Debug APK
