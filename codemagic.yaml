@@ -1,6 +1,6 @@
 workflows:
   ios-debug:
-    name: iOS Debug Build
+    name: iOS Debug Build (CocoaPods Fix)
     max_build_duration: 60
     environment:
       flutter: stable
@@ -9,13 +9,20 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Reintegrate CocoaPods from scratch
+        script: |
+          cd ios
+          rm -rf Pods Podfile.lock .symlinks
+          pod deintegrate || true
+          pod install --repo-update
       - name: Build iOS app for simulator
-        script: flutter build ios --simulator --no-codesign
+        script: flutter build ios --debug --no-codesign
     artifacts:
-      - build/ios/iphonesimulator/*.app
+      - build/ios/iphonesimulator/Runner.app
+      - build/ios/iphonesimulator/**/*.app
 
   ios-release:
-    name: iOS Release
+    name: iOS Release Build
     max_build_duration: 60
     environment:
       flutter: stable
@@ -24,6 +31,12 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Reintegrate CocoaPods from scratch
+        script: |
+          cd ios
+          rm -rf Pods Podfile.lock .symlinks
+          pod deintegrate || true
+          pod install --repo-update
       - name: Build iOS for release
         script: flutter build ios --release --no-codesign
     artifacts:
