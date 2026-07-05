@@ -39,17 +39,27 @@ workflows:
           pod install --repo-update
       - name: Build iOS release (unsigned)
         script: flutter build ios --release --no-codesign
-      - name: Package as unsigned IPA
+      - name: Locate .app and package as unsigned IPA
         script: |
           set -e
-          cd build/ios/iphoneos
+          echo "=== Searching for Runner.app ==="
+          find build/ios -name "Runner.app" -type d 2>/dev/null
+          APP_PATH=$(find build/ios -name "Runner.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Runner.app not found"
+            exit 1
+          fi
+          echo "Found: $APP_PATH"
+          APP_DIR=$(dirname "$APP_PATH")
+          cd "$APP_DIR"
           rm -rf Payload
           mkdir Payload
           cp -R Runner.app Payload/Runner.app
           zip -r Runner_unsigned.ipa Payload
-        working_directory: build/ios/iphoneos
+          echo "=== IPA created ==="
+          ls -la Runner_unsigned.ipa
     artifacts:
-      - build/ios/iphoneos/Runner_unsigned.ipa
+      - build/**/Runner_unsigned.ipa
 
   android-debug:
     name: Android Debug APK
